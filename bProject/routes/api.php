@@ -16,6 +16,12 @@ use Illuminate\Http\Request;
 Route::post('sigin/excute', 'CodeApiController@getCode');
 Route::post('sigin/checking', 'CodeApiController@checking');
 
+Route::middleware('auth.apicode')->group(function(){
+	Route::post('menu/call', 'CodeApiController@menuCall');
+	Route::post('view/data', 'CodeApiController@viewData');
+	Route::post('index/data', 'CodeApiController@indexData');
+});
+
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
