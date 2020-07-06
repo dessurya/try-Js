@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 
 use App\Models\Users;
 use App\Models\Config;
+use App\Models\Customer;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 use Hash;
@@ -78,6 +79,14 @@ class CodeApiController extends Controller{
 		return response()->json($res);
 	}
 
+	public function find(Request $Request){
+		$res = [];
+		$res['success'] = true;
+		$res['msg'] = "found your data request";
+		$res['data'] = $this->findData([ 'model' => $Request->model, 'id' => $Request->id]);
+		return response()->json($res);
+	}
+
 	public function findData($config){
 		$model = $config['model'];
 		return $model::find($config['id']);
@@ -95,30 +104,109 @@ class CodeApiController extends Controller{
 		if (isset($Request->config['search'])) {
 			$condition = [];
 			foreach ($Request->config['search'] as $key => $value) {
-				$condition[] = [ $key, 'like', '%'.$value.'%' ];
+				if (!empty($value)) {
+					$data->where($key, 'like', '%'.$value.'%');
+				}
 			}
-			$data->where([$condition]);
 		}
 		if (isset($Request->config['order'])){
 			$data->orderBy($Request->config['order']['key'], $Request->config['order']['value']);
 		}
+		$count = $data->count();
+		$page = ceil($count/10);
 		$curentPage = 1;
 		$skip = 1;
 		if (isset($Request->config['page'])){
 			$curentPage = $Request->config['page'];
-			$skip = ($Request->config['page']-1)*10;
+			$skip = ($curentPage-1)*10;
 			$data->skip($skip)->take(10);
 		}else{
 			$data->skip(0)->take(10);
 		}
-		$count = $data->count();
-		$page = ceil($count%10);
 		$data = $data->get();
+		$countThis = count($data);
+
 		$res['record'] = $data;
 		$res['allOfPage'] = $page;
 		$res['curentPage'] = $curentPage;
-		$res['endRecord'] = $page;
+		$res['allRecord'] = $count;
+		$res['endRecord'] = ($skip)+($countThis);
+		if ($skip != 1) {
+			$skip += 1;
+		}
 		$res['startRecord'] = $skip;
-		return $res;
+		return response()->json($res);
+	}
+
+	public function storeData(Request $Request){
+		$funct = $Request->function;
+		$process = $this->$funct($Request);
+		return response()->json($process);
+	}
+
+	private function storeDataAMU($valreq){
+		$fail = ['success'=>false,'msg'=>'email ini telah digunakan'];
+		$model = $valreq->model;
+		if (empty($valreq->id)) {
+			$cek = $model::where('email', $valreq->email)->count();
+			if ($cek > 0) {
+				return $fail ;
+			}
+			$store = new $model;
+		}else{
+			$cek = $model::where('email', $valreq->email)->whereNotIn('id', [$valreq->id])->count();
+			if ($cek > 0) {
+				return $fail ;
+			}
+			$store = $model::Find($valreq->id);
+		}
+		$store->name = $valreq->name;
+		$store->email = $valreq->email;
+		$store->save();
+		return ['success'=>true,'msg'=>'success store data users'];
+	}
+
+	private function storeDataAMC($valreq){
+		$fail = ['success'=>false,'msg'=>'email ini telah digunakan'];
+		$model = $valreq->model;
+		if (empty($valreq->id)) {
+			$cek = $model::where('email', $valreq->email)->count();
+			if ($cek > 0) {
+				return $fail ;
+			}
+			$store = new $model;
+		}else{
+			$cek = $model::where('email', $valreq->email)->whereNotIn('id', [$valreq->id])->count();
+			if ($cek > 0) {
+				return $fail ;
+			}
+			$store = $model::Find($valreq->id);
+		}
+		$store->name = $valreq->name;
+		$store->email = $valreq->email;
+		$store->address = $valreq->address;
+		$store->phone = $valreq->phone;
+		$store->save();
+		return ['success'=>true,'msg'=>'success store data customer'];
+	}
+
+	private function storeDataAMG($valreq){
+		$model = $valreq->model;
+		if (empty($valreq->id)) {
+			$store = new $model;
+		}else{
+			$store = $model::Find($valreq->id);
+		}
+		$store->name = $valreq->name;
+		$store->point = $valreq->point;
+		$store->description = $valreq->description;
+		$store->save();
+		return ['success'=>true,'msg'=>'success store data gift'];
+	}
+
+	public function destroyData(Request $Request){
+		$model = $Request->model;
+		$model::where('id', $Request->id)->delete();
+		return ['success'=>true,'msg'=>'success delete data'];
 	}
 }

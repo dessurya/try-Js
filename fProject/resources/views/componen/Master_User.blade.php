@@ -1,12 +1,12 @@
 <div style="float: right;">
 	<div id="actionToolsGroupWrapper" class="btn-group">
-		<button type="button" data-conf="false" data-model="App\Models\Users" data-actype="getForm" data-action="add" data-select="false"
+		<button type="button" data-conf="false" data-model="App\Models\Customer" data-actype="getForm" data-action="add" data-select="false"
 		title="Add"
 		class="btn btn-info">Add</button>
-		<button type="button" data-conf="false" data-model="App\Models\Users" data-actype="getForm" data-action="view" data-select="true"
+		<button type="button" data-conf="false" data-model="App\Models\Customer" data-actype="getForm" data-action="view" data-select="true"
 		title="Open"
 		class="btn btn-info">Open</button>
-		<button type="button" data-conf="true" data-model="App\Models\Users" data-actype="destroyData" data-action="delete" data-select="true"
+		<button type="button" data-conf="true" data-model="App\Models\Customer" data-actype="destroyData" data-action="delete" data-select="true"
 		title="delete"
 		class="btn btn-info">Delete</button>
 	</div>

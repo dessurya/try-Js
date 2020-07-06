@@ -4,5 +4,5 @@
 </li>
 @endforeach
 <li class="nav-item">
-	<a class="nav-link" data-action="SignOut">Sign Out</a>
+	<a id="SignOut" class="nav-link">Sign Out</a>
 </li>

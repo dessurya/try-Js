@@ -52,6 +52,116 @@
 			getContentFM();
 		});
 
+		$(document).on('click', '#table-data tbody tr', function(){
+			$(this).toggleClass('selected');
+		});
+
+		$(document).on('click', '#SignOut', function(){
+			postData(null,urlLogout);
+		});
+
+		$(document).on('click', '#table-data thead th.orderTrue', function(){
+			var order = $(this).data('order');
+			var conf = sessionStorage.getItem('tabelConfig');
+			conf = JSON.parse(conf);
+			var sort = 'asc';
+			if (conf.order !== undefined) {
+				if (conf.order.key == order) {
+					if (conf.order.value == 'asc') {
+						sort = 'desc';
+					}
+				}
+			}
+			conf['order'] = {};
+			conf['order']['key'] = order;
+			conf['order']['value'] = sort;
+			getIndexTable(conf);
+			sessionStorage.setItem('tabelConfig', JSON.stringify(conf));
+		});
+
+		$(document).on('change', '#table-data-info select[name=page]', function(){
+			var page = $(this).val();
+			var conf = sessionStorage.getItem('tabelConfig');
+			conf = JSON.parse(conf);
+			conf['page'] = page;
+			getIndexTable(conf);
+			sessionStorage.setItem('tabelConfig', JSON.stringify(conf));
+		});
+
+		$(document).on('change', '#table-data tfoot input', function(){
+			var json = {};
+			$('#table-data tfoot input').each(function() {
+				var field = $(this).attr('name');
+				var searc = $(this).val();
+				if (searc != null || searc != '' || searc.length != 0) {
+					json[field] = searc;
+				}
+			});
+			console.log(json);
+			var conf = sessionStorage.getItem('tabelConfig');
+			conf = JSON.parse(conf);
+			conf['search'] = json;
+			getIndexTable(conf);
+			sessionStorage.setItem('tabelConfig', JSON.stringify(conf));
+		});
+
+		$(document).on('click', '#actionToolsGroupWrapper button', function(){
+			var data = {};
+			data['model'] = $(this).data('model');
+			data['action'] = $(this).data('action');
+			data['actionType'] = $(this).data('actype');
+			data['select'] = $(this).data('select');
+			data['conf'] = $(this).data('conf');
+			actionToolsExcute(data);
+		});
+
+		function actionToolsExcute(data) {
+			var id = getDataId(data.select, false);
+			if(id == false){ return false; }
+			data['id'] = id;
+			var val = {};
+			if(data.conf == true){
+				val['title'] = 'Warning';
+				val['type'] = 'info';
+				val['text'] = 'Are You Sure Do '+data.action+' On Selected Data?';
+				val['input'] = {};
+				val['input'] = data;
+				pnotifyConfirm(val);
+			}else if(data.conf == false){
+				postData(data,urlAction);
+			}
+		}
+
+		function getDataId(select){
+			if(select == false){ return true; }
+			var idData = "";
+			$('table#table-data tbody tr.selected').each(function(){
+				idData += $(this).attr('id')+'^';
+			});
+			var getLength = idData.length-1;
+			idData = idData.substr(0, getLength);
+			var pndata = {};
+			if(idData === null || idData === '' || idData === undefined){
+				pndata['title'] = 'Info';
+				pndata['type'] = 'error';
+				pndata['text'] = 'No Data Selected!';
+				pnotify(pndata);
+				return false;
+			}else if( idData.indexOf('^') > -1){
+				pndata['title'] = 'Info';
+				pndata['type'] = 'error';
+				pndata['text'] = 'You only can selected one data!';
+				pnotify(pndata);
+				return false;
+			}
+			return idData;
+		}
+
+		$(document).on('submit', 'form#PostRequest', function(){
+			var data = $(this).serializeArray();
+			postData(data,urlAction);
+			return false;
+		});
 
 		function postData(data,url) {
 			$.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
@@ -64,10 +174,7 @@
 					$('#loading-page').show();
 				},
 				success: function(data) {
-					$.when(responsePostData(data)).done(function(){
-						return true;
-					});
-					
+					responsePostData(data);
 					$('#loading-page').hide();
 				}
 			});
@@ -87,7 +194,14 @@
 			if (data.respnReload == true) { window.setTimeout(function() { location.reload(); }, 1550); }
 			if (data.signoutExe == true) { postData(null,urlLogout); }
 			if (data.getContentFM == true) { getContentFM(); }
-			if (data.getIndexTable == true) { getIndexTable({ 'model' : data.getIndexModel }); }
+			if (data.getIndexTable == true) { 
+				var conf = { 'model' : data.getIndexModel, 'page' : 1 };
+				getIndexTable(conf);
+				sessionStorage.setItem('tabelConfig', JSON.stringify(conf));
+			}
+			if (data.indexTabInfo == true) {
+				$(data.indexTabInfoTarget).html(atob(data.indexTabInfoRender));
+			}
 			return true;
 		}
 
@@ -130,7 +244,7 @@
 					]
 				}
 			}).get().on('pnotify.confirm', function(){
-				postData(data,urlAction);
+				postData(data.input,urlAction);
 			});
 		}
 	</script>

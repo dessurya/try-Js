@@ -12,7 +12,7 @@
 		@foreach($table as $row)
 		<th>
 			@if($row['search'] == true)
-			<input type="text" name="{{ $row['name'] }}" placeholder="Search {{ $row['field'] }}" class="form-control">
+			<input type="text" name="{{ $row['name'] }}" placeholder="Search {{ $row['field'] }}" class="form-control search">
 			@endif
 		</th>
 		@endforeach
