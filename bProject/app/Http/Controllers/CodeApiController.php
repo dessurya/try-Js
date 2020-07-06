@@ -204,6 +204,20 @@ class CodeApiController extends Controller{
 		return ['success'=>true,'msg'=>'success store data gift'];
 	}
 
+	private function storeDataAMP($valreq){
+		$model = $valreq->model;
+		if (empty($valreq->id)) {
+			$store = new $model;
+		}else{
+			$store = $model::Find($valreq->id);
+		}
+		$store->name = $valreq->name;
+		$store->price = $valreq->price;
+		$store->description = $valreq->description;
+		$store->save();
+		return ['success'=>true,'msg'=>'success store data product'];
+	}
+
 	public function destroyData(Request $Request){
 		$model = $Request->model;
 		$model::where('id', $Request->id)->delete();

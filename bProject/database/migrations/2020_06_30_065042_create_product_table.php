@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateGiftTable extends Migration
+class CreateProductTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,10 +13,10 @@ class CreateGiftTable extends Migration
      */
     public function up()
     {
-        Schema::create('pahit_gift', function (Blueprint $table) {
+        Schema::create('pahit_product', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('name');
-            $table->integer('point')->default(0);
+            $table->integer('price')->nullable();
             $table->string('description')->nullable();
             $table->timestamps();
         });
@@ -29,6 +29,6 @@ class CreateGiftTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('pahit_gift');
+        Schema::dropIfExists('pahit_product');
     }
 }

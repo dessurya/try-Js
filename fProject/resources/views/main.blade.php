@@ -35,6 +35,7 @@
 	</div>
 	
 	<script type="text/javascript" src="{{ asset('vendor/jquery/dist/jquery.min.js') }}"></script>
+	<script type="text/javascript" src="{{ asset('vendor/bootstrap/dist/js/bootstrap.min.js') }}"></script>
 	<script type="text/javascript" src="{{ asset('vendor/pnotify/pnotify.custom.min.js') }}"></script>
 	<script type="text/javascript">
 		var urlAction = "{{ route('action.exe') }}";
@@ -103,6 +104,16 @@
 			conf['search'] = json;
 			getIndexTable(conf);
 			sessionStorage.setItem('tabelConfig', JSON.stringify(conf));
+		});
+
+		$(document).on('click', '.indexOfSearch', function(){
+			$('.modal').modal('show');
+			var data = {};
+			postData(data,urlAction);
+		});
+
+		$(document).on('click', '.modal button.btn-default', function(){
+			$('.modal').modal('hide');
 		});
 
 		$(document).on('click', '#actionToolsGroupWrapper button', function(){

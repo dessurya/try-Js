@@ -218,6 +218,32 @@ class ActionController extends Controller{
         return $res;
     }
 
+    public function storeDataAMP($data, $authCode){
+        $res = [];
+        $res['success'] = true;
+        $data['function'] = 'storeDataAMP';
+        $opt = [
+            "token" => $authCode['codeOfMe'], 
+            "json" => json_encode($data->all()),
+            "target" => config('endpoint.storeData')
+        ];
+        $storeData = SendRequestHelper::sendRequestToExtJsonMethod($opt);
+        $res['response'] = $storeData['response'];
+        $res['msg'] = $storeData['response']['msg'];
+        if ($storeData['response']['success'] == false) {
+            $res['success'] = false;
+            $res['respnType'] = 'info';
+        }else{
+            $res['respnType'] = 'info';
+            $res['getContentFM'] = true;
+        }
+        return $res;
+    }
+
+    public function indexSearch($data, $authCode){
+        # code...
+    }
+
     public function selfStoreData($data, $authCode){
         return [
             'respnType' => 'info',
