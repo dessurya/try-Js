@@ -40,7 +40,8 @@
 							type="text" 
 							value="{{ !empty($toView) ? $toView['customer'] : '' }}" 
 							data-model="App\Models\Customer"
-							data-target="customer|customer_id"
+							data-actctn="Master_User"
+							data-target="input[name=customer]-name|input[name=customer_id]-id"
 							class="form-control indexOfSearch">
 						<input 
 							name="customer_id" 
@@ -73,6 +74,7 @@
 								type="text" 
 								value="{{ $row['product']}}" 
 								data-model="App\Models\Customer"
+								data-actctn="Master_Product"
 								data-target="customer|customer_id|price"
 								class="form-control indexOfSearch">
 							</div>

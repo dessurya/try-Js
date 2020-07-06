@@ -1,3 +1,4 @@
+@if(!isset($modal))
 <div style="float: right;">
 	<div id="actionToolsGroupWrapper" class="btn-group">
 		<button type="button" data-conf="false" data-model="App\Models\Customer" data-actype="getForm" data-action="add" data-select="false"
@@ -14,7 +15,8 @@
 <div class="clearfix"></div>
 <div id="fromRender"></div>
 <hr>
-<div class="table-responsive">
+@endif
+<div id="componenTable" class="table-responsive">
 	<table id="table-data" class="table table-striped table-bordered no-footer" width="100%">
 		@include('componen.table_index', ['table' => $getViewData['index']['table']])
 	</table>

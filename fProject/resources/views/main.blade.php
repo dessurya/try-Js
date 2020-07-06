@@ -106,10 +106,83 @@
 			sessionStorage.setItem('tabelConfig', JSON.stringify(conf));
 		});
 
+		$(document).on('click', '.modal #table-data thead th.orderTrue', function(){
+			var order = $(this).data('order');
+			var conf = sessionStorage.getItem('tabelConfigOnModal');
+			conf = JSON.parse(conf);
+			var sort = 'asc';
+			if (conf.order !== undefined) {
+				if (conf.order.key == order) {
+					if (conf.order.value == 'asc') {
+						sort = 'desc';
+					}
+				}
+			}
+			conf['order'] = {};
+			conf['order']['key'] = order;
+			conf['order']['value'] = sort;
+			getIndexTableOnModal(conf);
+			sessionStorage.setItem('tabelConfigOnModal', JSON.stringify(conf));
+		});
+
+		$(document).on('change', '.modal #table-data-info select[name=page]', function(){
+			var page = $(this).val();
+			var conf = sessionStorage.getItem('tabelConfigOnModal');
+			conf = JSON.parse(conf);
+			conf['page'] = page;
+			getIndexTableOnModal(conf);
+			sessionStorage.setItem('tabelConfigOnModal', JSON.stringify(conf));
+		});
+
+		$(document).on('change', '.modal #table-data tfoot input', function(){
+			var json = {};
+			$('.modal #table-data tfoot input').each(function() {
+				var field = $(this).attr('name');
+				var searc = $(this).val();
+				if (searc != null || searc != '' || searc.length != 0) {
+					json[field] = searc;
+				}
+			});
+			console.log(json);
+			var conf = sessionStorage.getItem('tabelConfigOnModal');
+			conf = JSON.parse(conf);
+			conf['search'] = json;
+			getIndexTableOnModal(conf);
+			sessionStorage.setItem('tabelConfigOnModal', JSON.stringify(conf));
+		});
+
 		$(document).on('click', '.indexOfSearch', function(){
 			$('.modal').modal('show');
-			var data = {};
+			sessionStorage.setItem('modelSearch', $(this).data('model'));
+			sessionStorage.setItem('targetSearch', $(this).data('target'));
+			var data = { 'actionType' : 'indexSearch', 'model' : $(this).data('model'), 'actionContent' : $(this).data('actctn')};
 			postData(data,urlAction);
+		});
+
+		$(document).on('click', '.modal button.btn-primary', function(){
+			var idData = "";
+			$('.modal table#table-data tbody tr.selected').each(function(){
+				idData += $(this).attr('id')+'^';
+			});
+			var getLength = idData.length-1;
+			idData = idData.substr(0, getLength);
+			var pndata = {};
+			if(idData === null || idData === '' || idData === undefined){
+				pndata['title'] = 'Info';
+				pndata['type'] = 'error';
+				pndata['text'] = 'No Data Selected!';
+				pnotify(pndata);
+				return false;
+			}else if( idData.indexOf('^') > -1){
+				pndata['title'] = 'Info';
+				pndata['type'] = 'error';
+				pndata['text'] = 'You only can selected one data!';
+				pnotify(pndata);
+				return false;
+			}
+
+			postData({ 'actionType' : 'getSearchResault', 'model' : sessionStorage.getItem('modelSearch'), 'target' : sessionStorage.getItem('targetSearch'), 'id' : idData },urlAction);
+			$('.modal').modal('hide');
 		});
 
 		$(document).on('click', '.modal button.btn-default', function(){
@@ -210,14 +283,32 @@
 				getIndexTable(conf);
 				sessionStorage.setItem('tabelConfig', JSON.stringify(conf));
 			}
+			if (data.getIndexTableOnModal == true) { 
+				var conf = { 'model' : data.getIndexModel, 'page' : 1 };
+				getIndexTableOnModal(conf);
+				sessionStorage.setItem('tabelConfigOnModal', JSON.stringify(conf));
+			}
 			if (data.indexTabInfo == true) {
 				$(data.indexTabInfoTarget).html(atob(data.indexTabInfoRender));
+			}
+			if (data.fieldOfInput == true) {
+				console.log(data.replace);
+				$.each(data.replace, function(key, row) {
+					console.log(row);
+					console.log(row.key);
+					console.log(row.val);
+					$(row.key).val(row.val);
+				});
 			}
 			return true;
 		}
 
 		function getIndexTable(config) {
 			postData({ 'actionType' : 'getIndexTable', 'config' : config },urlAction);
+		}
+
+		function getIndexTableOnModal(config) {
+			postData({ 'actionType' : 'getIndexTableOnModal', 'config' : config },urlAction);
 		}
 
 		function getContentFM() {

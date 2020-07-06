@@ -87,7 +87,7 @@ class ActionController extends Controller{
         $render = [];
         $render['render'] = view('componen.'.$componen, compact('toView'))->render();
         $render['type'] = 'replace';
-        $render['target'] = 'tbody';
+        $render['target'] = '#componenTable tbody';
         $return = $this->render($render);
         $page = [];
         for ($i = 1;$i<=$getIndexTable['response']['allOfPage'];$i++) {
@@ -102,7 +102,7 @@ class ActionController extends Controller{
             'endRecord' => $getIndexTable['response']['endRecord']
         ];
         $return['indexTabInfo'] = true;
-        $return['indexTabInfoTarget'] = '#table-data-info';
+        $return['indexTabInfoTarget'] = '#componenTable #table-data-info';
         $return['indexTabInfoRender'] = base64_encode(view('componen.table-data-info', compact('toView'))->render());
         
         return $return;
@@ -241,7 +241,94 @@ class ActionController extends Controller{
     }
 
     public function indexSearch($data, $authCode){
-        # code...
+        $opt = [
+            "token" => $authCode['codeOfMe'], 
+            "json" => json_encode([
+                "userType" => $authCode['codeTyMe'],
+                "actionContent" => $data->actionContent
+            ]),
+            "target" => config('endpoint.getViewData')
+        ];
+        $getViewData = SendRequestHelper::sendRequestToExtJsonMethod($opt);
+        $getViewData = $getViewData['response']['data'];
+        $modal = true;
+        $render = [];
+        $render['render'] = view('componen.'.$data->actionContent, compact('getViewData','modal'))->render();
+        $render['type'] = 'replace';
+        $render['target'] = '.modal .modal-body';
+        $return = $this->render($render);
+        if (isset($getViewData['index'])) {
+            $return['getIndexTableOnModal'] = true;
+            $return['getIndexModel'] = $getViewData['model'];
+        }
+        return $return;
+    }
+
+    public function getIndexTableOnModal($data, $authCode){
+        $opt = [
+            "token" => $authCode['codeOfMe'], 
+            "json" => json_encode([
+                "userType" => $authCode['codeTyMe'],
+                "config" => $data->config
+            ]),
+            "target" => config('endpoint.getIndexTable')
+        ];
+        $getIndexTable = SendRequestHelper::sendRequestToExtJsonMethod($opt);
+        $toView = $getIndexTable['response']['record'];
+        $model = explode('\\', $data->config['model']);
+        $model = $model[count($model)-1];
+        $componen = $data->actionType.$model;
+        $componen = str_replace('OnModal', '', $componen);
+        $render = [];
+        $render['render'] = view('componen.'.$componen, compact('toView'))->render();
+        $render['type'] = 'replace';
+        $render['target'] = '.modal tbody';
+        $return = $this->render($render);
+        $page = [];
+        for ($i = 1;$i<=$getIndexTable['response']['allOfPage'];$i++) {
+            $page[] = $i;
+        }
+        $toView = [ 
+            'page' => $page,
+            'allOfPage' => $getIndexTable['response']['allOfPage'],
+            'curentPage' => $getIndexTable['response']['curentPage'],
+            'allRecord' => $getIndexTable['response']['allRecord'],
+            'startRecord' => $getIndexTable['response']['startRecord'],
+            'endRecord' => $getIndexTable['response']['endRecord']
+        ];
+        $return['indexTabInfo'] = true;
+        $return['indexTabInfoTarget'] = '.modal #table-data-info';
+        $return['indexTabInfoRender'] = base64_encode(view('componen.table-data-info', compact('toView'))->render());
+        
+        return $return;
+    }
+
+    public function getSearchResault($data, $authCode){
+        $opt = [
+            "token" => $authCode['codeOfMe'], 
+            "json" => json_encode([
+                "model" => $data->model,
+                "id" => $data->id
+            ]),
+            "target" => config('endpoint.getFindData')
+        ];
+        $getFindData = SendRequestHelper::sendRequestToExtJsonMethod($opt);
+        $findData = $getFindData['response']['data'];
+        $replace = [];
+        $target = explode('|', $data->target);
+        foreach ($target as $rData) {
+            $rDataEx = explode('-', $rData);
+            $replace[] = [
+                'key' => $rDataEx[0],
+                'val' => $findData[$rDataEx[1]]
+            ];
+
+        }
+        $return = [];
+        $return['success'] = true;
+        $return['replace'] = $replace;
+        $return['fieldOfInput'] = true;
+        return $return;
     }
 
     public function selfStoreData($data, $authCode){
