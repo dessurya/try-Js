@@ -15,9 +15,8 @@ class CreateTransactionDetilTable extends Migration
     {
         Schema::create('pahit_transaction_detil', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->bigInteger('amount')->nullable();
             $table->string('product')->nullable();
-            $table->integer('price')->nullable();
+            $table->bigInteger('price')->nullable();
             $table->bigInteger('product_id')->nullable()->unsigned();
             $table->bigInteger('transaction_id')->nullable()->unsigned();
             $table->timestamps();

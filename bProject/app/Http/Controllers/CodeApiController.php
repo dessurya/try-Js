@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use App\Models\Users;
 use App\Models\Config;
 use App\Models\Customer;
+use App\Models\Transaction;
+use App\Models\TransactionDetil;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 use Hash;
@@ -138,6 +140,16 @@ class CodeApiController extends Controller{
 		return response()->json($res);
 	}
 
+	public function getData(Request $Request){
+		$model = $Request->model;
+		$get = $model::select('*');
+		foreach ($Request->condition as $key => $value) {
+			$get->where($key, $value);
+		}
+		$get = $get->get();
+		return ['success'=>true,'data'=>$get];
+	}
+
 	public function storeData(Request $Request){
 		$funct = $Request->function;
 		$process = $this->$funct($Request);
@@ -216,6 +228,37 @@ class CodeApiController extends Controller{
 		$store->description = $valreq->description;
 		$store->save();
 		return ['success'=>true,'msg'=>'success store data product'];
+	}
+
+	private function storeDataAMT($valreq){
+		$model = $valreq->model;
+		if (empty($valreq->id)) {
+			$store = new $model;
+			
+			$customer = Customer::find($valreq->customer_id);
+			$customer->point = $customer->point+5;
+			$customer->save();
+		}else{
+			$store = $model::Find($valreq->id);
+			TransactionDetil::where('transaction_id', $valreq->id)->delete();
+		}
+		$store->customer = $valreq->customer;
+		$store->customer_id = $valreq->customer_id;
+		$store->save();
+		$amount = 0;
+		foreach ($valreq->detil as $key => $record) {
+			$storeD = new TransactionDetil;
+			$storeD->product = $record['product'];
+			$storeD->product_id = $record['product_id'];
+			$storeD->price = $record['price'];
+			$storeD->transaction_id = $store->id;
+			$storeD->save();
+			$amount += $record['price'];
+		}
+		$store->amount = $amount;
+		$store->save();
+
+		return ['success'=>true,'msg'=>'success store data transaction'];
 	}
 
 	public function destroyData(Request $Request){

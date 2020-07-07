@@ -155,8 +155,18 @@
 			$('.modal').modal('show');
 			sessionStorage.setItem('modelSearch', $(this).data('model'));
 			sessionStorage.setItem('targetSearch', $(this).data('target'));
+			sessionStorage.setItem('parentSearch', $(this).data('parent'));
 			var data = { 'actionType' : 'indexSearch', 'model' : $(this).data('model'), 'actionContent' : $(this).data('actctn')};
 			postData(data,urlAction);
+		});
+
+		$(document).on('click', '#AddDetislTransaction', function(){
+			postData({ 'actionType' : 'AddDetislTransaction', 'target' : '#detilTrans .x_content', 'type' : 'append' },urlAction);
+		});
+
+		$(document).on('click', '#RemoveDetislTransaction', function(){
+			var row = $(this).data('row');
+			$(row).remove();
 		});
 
 		$(document).on('click', '.modal button.btn-primary', function(){
@@ -181,7 +191,7 @@
 				return false;
 			}
 
-			postData({ 'actionType' : 'getSearchResault', 'model' : sessionStorage.getItem('modelSearch'), 'target' : sessionStorage.getItem('targetSearch'), 'id' : idData },urlAction);
+			postData({ 'actionType' : 'getSearchResault', 'model' : sessionStorage.getItem('modelSearch'), 'target' : sessionStorage.getItem('targetSearch'), 'parent' : sessionStorage.getItem('parentSearch'), 'id' : idData },urlAction);
 			$('.modal').modal('hide');
 		});
 
@@ -247,6 +257,28 @@
 			return false;
 		});
 
+		$(document).on('submit', 'form#PostRequestTransaction', function(){
+			var data = { 'actionType' : $('form#PostRequestTransaction input[name=actionType]').val(), 'model' : $('form#PostRequestTransaction input[name=model]').val(), 'id' : $('form#PostRequestTransaction input[name=id]').val(), 'customer' : $('form#PostRequestTransaction input[name=customer]').val(), 'customer_id' : $('form#PostRequestTransaction input[name=customer_id]').val() };
+			var detil = {};
+			var count = 0;
+			$('form#PostRequestTransaction #detilTrans .row').each(function(){
+				detil[$(this).attr('id')] = {
+					'product_id' : $(this).find('input[name=product_id]').val(),
+					'product' : $(this).find('input[name=product]').val(),
+					'price' : $(this).find('input[name=price]').val()
+				};
+				count += 1;
+			});
+			if (count == 0) {
+				pnotify({ 'title' : 'Info', 'text' : 'detil masih kosong ', 'type' : 'Warning' });
+				return false;
+			}
+			data['detil'] = detil;
+			postData(data,urlAction);
+			return false;
+		});
+		
+
 		function postData(data,url) {
 			$.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
 			$.ajax({
@@ -266,12 +298,13 @@
 
 		function responsePostData(data) {
 			if (data.respnType == 'info') {
-				var pndata = { 'title' : 'Info', 'text' : data.msg, 'type' : 'Warning' };
-				pnotify(pndata);
+				pnotify({ 'title' : 'Info', 'text' : data.msg, 'type' : 'Warning' });
 			}else if (data.respnType == 'render') {
 				var render = atob(data.renderContent);
 				if (data.renderType == 'replace') {
 					$(data.renderTarget).html(render);
+				}else if (data.renderType == 'append') {
+					$(data.renderTarget).append(render);
 				}
 			}
 
@@ -292,11 +325,7 @@
 				$(data.indexTabInfoTarget).html(atob(data.indexTabInfoRender));
 			}
 			if (data.fieldOfInput == true) {
-				console.log(data.replace);
 				$.each(data.replace, function(key, row) {
-					console.log(row);
-					console.log(row.key);
-					console.log(row.val);
 					$(row.key).val(row.val);
 				});
 			}

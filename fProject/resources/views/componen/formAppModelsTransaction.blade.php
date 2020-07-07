@@ -1,13 +1,13 @@
 <div class="x_panel">
-	<form id="PostRequest">
+	<form id="PostRequestTransaction">
 		<div class="x_title">
 			<h3 align="center">Form {{ !empty($toView) ? 'Show & Update' : 'Add'  }}</h3>
 			<div class="clearfix"></div>
 		</div>
 		<div class="x_content">
 			<div class="row">
-				<input type="hidden" name="actionType" value="storeDataAMG">
-				<input type="hidden" name="model" value="App\Models\Gift">
+				<input type="hidden" name="actionType" value="storeDataAMT">
+				<input type="hidden" name="model" value="App\Models\Transaction">
 				<input type="hidden" name="id" value="{{ !empty($toView) ? $toView['id'] : ''  }}">
 				<div class="col-sm-6">
 					<div class="form-group">
@@ -41,6 +41,7 @@
 							value="{{ !empty($toView) ? $toView['customer'] : '' }}" 
 							data-model="App\Models\Customer"
 							data-actctn="Master_User"
+							data-parent=""
 							data-target="input[name=customer]-name|input[name=customer_id]-id"
 							class="form-control indexOfSearch">
 						<input 
@@ -51,7 +52,7 @@
 					</div>
 				</div>
 			</div>
-			<div class="x_panel">
+			<div id="detilTrans" class="x_panel">
 				<div class="x_content">
 					<div style="float: right;">
 						<span id="AddDetislTransaction" class="btn btn-info">Add Detils</span>
@@ -60,37 +61,7 @@
 					<hr>
 					@if(!empty($toView))
 					@foreach($toView['detil'] as $row)
-					<div class="row">
-						<div class="col-sm-6">
-							<div class="form-group">
-								Product
-								<input 
-								name="product_id" 
-								type="hidden" 
-								value="{{ $row['product_id']}}">
-								<input 
-								required 
-								name="product" 
-								type="text" 
-								value="{{ $row['product']}}" 
-								data-model="App\Models\Customer"
-								data-actctn="Master_Product"
-								data-target="customer|customer_id|price"
-								class="form-control indexOfSearch">
-							</div>
-						</div>
-						<div class="col-sm-6">
-							<div class="form-group">
-								Price
-								<input 
-								readonly 
-								name="price" 
-								type="text" 
-								value="{{ $row['price']}}" 
-								class="form-control">
-							</div>
-						</div>
-					</div>
+					@include('componen.formAppModelsTransactionDetil', ['row' => $row])
 					@endforeach
 					@endif
 				</div>

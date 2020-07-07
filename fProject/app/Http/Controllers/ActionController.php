@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use App\Helper\SendRequestHelper;
 use Carbon\Carbon;
 use Session;
@@ -122,6 +123,18 @@ class ActionController extends Controller{
             ];
             $getFindData = SendRequestHelper::sendRequestToExtJsonMethod($opt);
             $toView = $getFindData['response']['data'];
+            if ($content == 'AppModelsTransaction') {
+                $opt = [
+                    "token" => $authCode['codeOfMe'], 
+                    "json" => json_encode([
+                        "model" => 'App\Models\TransactionDetil',
+                        "condition" => [ 'transaction_id' => $data->id ]
+                    ]),
+                    "target" => config('endpoint.getData')
+                ];
+                $getData = SendRequestHelper::sendRequestToExtJsonMethod($opt);
+                $toView['detil'] = $getData['response']['data'];
+            }
         }
         $render = [];
         $render['render'] = view('componen.form'.$content, compact('toView'))->render();
@@ -240,6 +253,28 @@ class ActionController extends Controller{
         return $res;
     }
 
+    public function storeDataAMT($data, $authCode){
+        $res = [];
+        $res['success'] = true;
+        $data['function'] = 'storeDataAMT';
+        $opt = [
+            "token" => $authCode['codeOfMe'], 
+            "json" => json_encode($data->all()),
+            "target" => config('endpoint.storeData')
+        ];
+        $storeData = SendRequestHelper::sendRequestToExtJsonMethod($opt);
+        $res['response'] = $storeData['response'];
+        $res['msg'] = $storeData['response']['msg'];
+        if ($storeData['response']['success'] == false) {
+            $res['success'] = false;
+            $res['respnType'] = 'info';
+        }else{
+            $res['respnType'] = 'info';
+            $res['getContentFM'] = true;
+        }
+        return $res;
+    }
+
     public function indexSearch($data, $authCode){
         $opt = [
             "token" => $authCode['codeOfMe'], 
@@ -318,8 +353,12 @@ class ActionController extends Controller{
         $target = explode('|', $data->target);
         foreach ($target as $rData) {
             $rDataEx = explode('-', $rData);
+            $key = $rDataEx[0];
+            if (!empty($data->parent)) {
+                $key = $data->parent.' '.$key;
+            }
             $replace[] = [
-                'key' => $rDataEx[0],
+                'key' => $key,
                 'val' => $findData[$rDataEx[1]]
             ];
 
@@ -328,6 +367,17 @@ class ActionController extends Controller{
         $return['success'] = true;
         $return['replace'] = $replace;
         $return['fieldOfInput'] = true;
+        return $return;
+    }
+
+    public function AddDetislTransaction($data, $authCode){
+        $row=null;
+        $rand=Str::random(4);
+        $render = [];
+        $render['render'] = view('componen.formAppModelsTransactionDetil', compact('row','rand'))->render();
+        $render['type'] = $data->type;
+        $render['target'] = $data->target;
+        $return = $this->render($render);
         return $return;
     }
 
